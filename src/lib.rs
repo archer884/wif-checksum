@@ -5,8 +5,24 @@ use sha2::{Digest, Sha256};
 
 pub type Result<T, E = base58::FromBase58Error> = std::result::Result<T, E>;
 
-pub fn validate_checksum(key: &str) -> Result<bool> {
-    let key = key.from_base58()?;
+pub trait HasBytes {
+    fn as_bytes(&self) -> &[u8];
+}
+
+impl HasBytes for [u8] {
+    fn as_bytes(&self) -> &[u8] {
+        todo!()
+    }
+}
+
+impl<T: AsRef<str>> HasBytes for T {
+    fn as_bytes(&self) -> &[u8] {
+        self.as_ref().as_bytes()
+    }
+}
+
+pub fn validate_checksum(key: &impl HasBytes) -> Result<bool> {
+    let key = key.as_bytes().from_base58()?;
     let (key, checksum) = key.split_at(key.len() - 4);
     let a = hash(key);
     let b = hash(&a);
